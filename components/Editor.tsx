@@ -9,9 +9,9 @@ interface EditorProps {
   entry: JournalEntry
 }
 export default function Editor({ entry }) {
-  const [value, setValue] = useState(entry.content)
+  const [value, setValue] = useState(entry?.content)
   const [isLoading, setIsLoading] = useState(false)
-  const [analysis, setAnalysis] = useState(entry.analysis)
+  const [analysis, setAnalysis] = useState(entry?.analysis)
 
   const { mood, summary, color, subject, negative } = analysis
   const alaysisData = [

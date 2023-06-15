@@ -1,9 +1,8 @@
 import Editor from '@/components/Editor'
 import { getUserByClerkID } from '@/utils/auth'
 import { prisma } from '@/utils/db'
-import { JournalEntry, Prisma } from '@prisma/client'
 
-const getEntry = async (id: string) => {
+const getEntry = async (id) => {
   const user = await getUserByClerkID()
   const entry = await prisma.journalEntry.findUnique({
     where: {
@@ -27,12 +26,9 @@ interface EntryPageProps {
 }
 export default async function EntryPage({ params: { id } }: EntryPageProps) {
   const entry = await getEntry(id)
-
   return (
     <div className="h-full w-full">
-      <div className="col-span-2">
-        <Editor entry={entry} />
-      </div>
+      <Editor entry={entry} />
     </div>
   )
 }
