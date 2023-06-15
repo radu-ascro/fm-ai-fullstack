@@ -1,65 +1,88 @@
 'use client'
-
-import { updateEntry } from '@/utils/api'
-import { JournalEntry } from '@prisma/client'
+import { updateEntry, deleteEntry } from '@/utils/api'
 import { useState } from 'react'
 import { useAutosave } from 'react-autosave'
+import Spinner from './Spinner'
+import { useRouter } from 'next/navigation'
 
-interface EditorProps {
-  entry: JournalEntry
-}
-export default function Editor({ entry }) {
-  const [value, setValue] = useState(entry?.content)
-  const [isLoading, setIsLoading] = useState(false)
-  const [analysis, setAnalysis] = useState(entry?.analysis)
+const Editor = ({ entry }) => {
+  const [text, setText] = useState(entry.content)
+  const [currentEntry, setEntry] = useState(entry)
+  const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter()
 
-  const { mood, summary, color, subject, negative } = analysis
-  const alaysisData = [
-    { name: 'Summary', value: summary },
-    { name: 'Subject', value: subject },
-    { name: 'Mood', value: mood },
-    { name: 'Negative', value: negative ? 'True' : 'False' },
-  ]
-
+  const handleDelete = async () => {
+    await deleteEntry(entry.id)
+    router.push('/journal')
+  }
   useAutosave({
-    data: value,
-    onSave: async (_value) => {
-      setIsLoading(true)
-      const data = await updateEntry(entry.id, _value)
-      setAnalysis(data.analysis)
-      setIsLoading(false)
+    data: text,
+    onSave: async (_text) => {
+      if (_text === entry.content) return
+      setIsSaving(true)
+
+      const { data } = await updateEntry(entry.id, { content: _text })
+
+      setEntry(data)
+      setIsSaving(false)
     },
   })
 
   return (
-    <div className="grid h-full w-full grid-cols-3">
+    <div className="relative grid h-full w-full grid-cols-3 gap-0">
+      <div className="absolute left-0 top-0 p-2">
+        {isSaving ? (
+          <Spinner />
+        ) : (
+          <div className="h-[16px] w-[16px] rounded-full bg-green-500"></div>
+        )}
+      </div>
       <div className="col-span-2">
-        {isLoading && <div>...loading</div>}
         <textarea
-          className="h-full w-full p-8 text-xl outline-none"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="h-full w-full p-8 text-xl"
         />
       </div>
-
-      <div className="border-l border-black/10">
-        <div className=" px-6 py-10" style={{ backgroundColor: color }}>
-          <h2 className="text-2xl">Analysis</h2>
+      <div className="border-l border-black/5">
+        <div
+          style={{ background: currentEntry.analysis.color }}
+          className="h-[100px] bg-blue-600 p-8 text-white"
+        >
+          <h2 className="bg-white/25 text-2xl text-black">Analysis</h2>
         </div>
         <div>
-          <ul>
-            {alaysisData.map((item) => (
-              <li
-                key={item.name}
-                className="item-center flex justify-between border-b border-t border-black/10 px-2 py-4"
+          <ul role="list" className="divide-y divide-gray-200">
+            <li className="flex items-center justify-between px-8 py-4">
+              <div className="w-1/3 text-xl font-semibold">Subject</div>
+              <div className="text-xl">{currentEntry.analysis.subject}</div>
+            </li>
+
+            <li className="flex items-center justify-between px-8 py-4">
+              <div className="text-xl font-semibold">Mood</div>
+              <div className="text-xl">{currentEntry.analysis.mood}</div>
+            </li>
+
+            <li className="flex items-center justify-between px-8 py-4">
+              <div className="text-xl font-semibold">Negative</div>
+              <div className="text-xl">
+                {currentEntry.analysis.negative ? 'True' : 'False'}
+              </div>
+            </li>
+            <li className="flex items-center justify-between px-8 py-4">
+              <button
+                onClick={handleDelete}
+                type="button"
+                className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
               >
-                <span className="text-lg font-semibold">{item.name}</span>
-                <span>{item.value}</span>
-              </li>
-            ))}
+                Delete
+              </button>
+            </li>
           </ul>
         </div>
       </div>
     </div>
   )
 }
+
+export default Editor

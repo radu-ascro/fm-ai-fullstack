@@ -1,13 +1,14 @@
 'use client'
 
-import { createNewEntry } from '@/utils/api'
+import { newEntry } from '@/utils/api'
+import { revalidatePath } from 'next/cache'
 import { useRouter } from 'next/navigation'
 
-export default function NewEntryCard() {
+const NewEntry = () => {
   const router = useRouter()
 
   const handleOnClick = async () => {
-    const data = await createNewEntry()
+    const { data } = await newEntry()
     router.push(`/journal/${data.id}`)
   }
 
@@ -22,3 +23,5 @@ export default function NewEntryCard() {
     </div>
   )
 }
+
+export default NewEntry

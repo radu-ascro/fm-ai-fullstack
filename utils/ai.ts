@@ -26,7 +26,7 @@ const parser = StructuredOutputParser.fromZodSchema(
     color: z
       .string()
       .describe(
-        'a hexidecimal color code that represents the mood of the entry. Example #0101fe for blue representing happiness.'
+        'a hexidecimal color code the represents the mood of the entry. Example #0101fe for blue representing happiness.'
       ),
     sentimentScore: z
       .number()
@@ -41,7 +41,7 @@ const getPrompt = async (content) => {
 
   const prompt = new PromptTemplate({
     template:
-      'Analyze the following journal entry. Follow the instructions and format your response to match the format instructions, no matter what! \n{format_instructions}\n{entry}',
+      'Analyze the following journal entry. Follow the intrusctions and format your response to match the format instructions, no matter what! \n{format_instructions}\n{entry}',
     inputVariables: ['entry'],
     partialVariables: { format_instructions },
   })
@@ -53,15 +53,20 @@ const getPrompt = async (content) => {
   return input
 }
 
-export const analyze = async (content) => {
-  const input = await getPrompt(content)
+export const analyzeEntry = async (entry) => {
+  const input = await getPrompt(entry.content)
   const model = new OpenAI({ temperature: 0, modelName: 'gpt-3.5-turbo' })
-  const result = await model.call(input)
+  const output = await model.call(input)
 
   try {
-    return parser.parse(result)
+    return parser.parse(output)
   } catch (e) {
-    console.log(e)
+    const fixParser = OutputFixingParser.fromLLM(
+      new OpenAI({ temperature: 0, modelName: 'gpt-3.5-turbo' }),
+      parser
+    )
+    const fix = await fixParser.parse(output)
+    return fix
   }
 }
 

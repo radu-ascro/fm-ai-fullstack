@@ -23,6 +23,12 @@ model User {
   analysis Analysis[]
 }
 
+enum JOURNAL_ENTRY_STATUS {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model JournalEntry {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -31,7 +37,8 @@ model JournalEntry {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  content String @db.Text
+  content String               @db.Text
+  status  JOURNAL_ENTRY_STATUS @default(DRAFT)
 
   analysis Analysis?
 
@@ -50,10 +57,10 @@ model Analysis {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   mood           String
+  subject        String  @db.Text
   summary        String  @db.Text
-  color          String
+  color          String  @default("#0101fe") @db.Text
   negative       Boolean
-  subject        String
   sentimentScore Float   @default(0)
 
   @@unique([entryId])

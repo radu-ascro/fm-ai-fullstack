@@ -1,42 +1,48 @@
 import EntryCard from '@/components/EntryCard'
-import NewEntryCard from '@/components/NewEntryCard'
+import NewEntry from '@/components/NewEntry'
 import Question from '@/components/Question'
-import { analyze } from '@/utils/ai'
-import { getUserByClerkID } from '@/utils/auth'
+
+import { getUserFromClerkID } from '@/utils/auth'
 import { prisma } from '@/utils/db'
 import Link from 'next/link'
 
-const getEntires = async () => {
-  const user = await getUserByClerkID()
-  const entries = await prisma.journalEntry.findMany({
+const getEntries = async () => {
+  const user = await getUserFromClerkID()
+  const data = await prisma.journalEntry.findMany({
     where: {
       userId: user.id,
     },
     orderBy: {
       createdAt: 'desc',
     },
+    include: {
+      analysis: true,
+    },
   })
 
-  return entries
+  return data
 }
 
-export default async function JournalPage() {
-  const entries = await getEntires()
-
+const JournalPage = async () => {
+  const data = await getEntries()
   return (
-    <div className="h-full bg-zinc-400/10 p-10">
-      <h2 className="mb-8 text-3xl">Journal</h2>
+    <div className="h-full bg-zinc-100/50 px-6 py-8">
+      <h1 className="mb-12 text-4xl">Journals</h1>
       <div className="my-8">
         <Question />
       </div>
-      <div className="grid grid-cols-3 gap-4 ">
-        <NewEntryCard />
-        {entries.map((entry) => (
-          <Link key={entry.id} href={`/journal/${entry.id}`}>
-            <EntryCard entry={entry} />
-          </Link>
+      <div className="grid grid-cols-3 gap-4">
+        <NewEntry />
+        {data.map((entry) => (
+          <div key={entry.id}>
+            <Link href={`/journal/${entry.id}`}>
+              <EntryCard entry={entry} />
+            </Link>
+          </div>
         ))}
       </div>
     </div>
   )
 }
+
+export default JournalPage

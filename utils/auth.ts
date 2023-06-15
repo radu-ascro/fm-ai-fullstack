@@ -1,16 +1,9 @@
-import { auth } from '@clerk/nextjs'
+import type { User } from '@clerk/nextjs/api'
 import { prisma } from './db'
-import { Prisma } from '@prisma/client'
+import { auth } from '@clerk/nextjs'
 
-interface GetUserByClerkIDProps {
-  select?: Prisma.UserSelect | null | undefined
-}
-
-export const getUserByClerkID = async ({
-  select = { id: true },
-}: GetUserByClerkIDProps = {}) => {
-  const { userId } = await auth()
-
+export const getUserFromClerkID = async (select = { id: true }) => {
+  const { userId } = auth()
   const user = await prisma.user.findUniqueOrThrow({
     where: {
       clerkId: userId as string,
@@ -18,5 +11,24 @@ export const getUserByClerkID = async ({
     select,
   })
 
-  return user as Prisma.UserGetPayload<typeof user>
+  return user
+}
+
+export const syncNewUser = async (clerkUser: User) => {
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      clerkId: clerkUser.id,
+    },
+  })
+
+  if (!existingUser) {
+    const email = clerkUser.emailAddresses[0].emailAddress
+
+    await prisma.user.create({
+      data: {
+        clerkId: clerkUser.id,
+        email,
+      },
+    })
+  }
 }

@@ -28,7 +28,7 @@ const CustomTooltip = ({ payload, label, active }) => {
   return null
 }
 
-export default function HistoryChart({ data }) {
+const HistoryChart = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart width={300} height={100} data={data}>
@@ -45,3 +45,5 @@ export default function HistoryChart({ data }) {
     </ResponsiveContainer>
   )
 }
+
+export default HistoryChart
