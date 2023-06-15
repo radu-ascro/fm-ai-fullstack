@@ -1,8 +1,14 @@
 'use client'
 
+import { createNewEntry } from '@/utils/api'
+import { useRouter } from 'next/navigation'
+
 export default function NewEntryCard() {
-  const handleOnClick = () => {
-    console.log('New Entry')
+  const router = useRouter()
+
+  const handleOnClick = async () => {
+    const data = await createNewEntry()
+    router.push(`/journal/${data.id}}`)
   }
 
   return (

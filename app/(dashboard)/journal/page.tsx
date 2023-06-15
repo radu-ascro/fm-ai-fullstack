@@ -1,7 +1,9 @@
 import EntryCard from '@/components/EntryCard'
 import NewEntryCard from '@/components/NewEntryCard'
+import { analyze } from '@/utils/ai'
 import { getUserByClerkID } from '@/utils/auth'
 import { prisma } from '@/utils/db'
+import Link from 'next/link'
 
 const getEntires = async () => {
   const user = await getUserByClerkID()
@@ -11,6 +13,9 @@ const getEntires = async () => {
     },
     orderBy: {
       createdAt: 'desc',
+    },
+    include: {
+      analysis: true,
     },
   })
 
@@ -26,7 +31,9 @@ export default async function JournalPage() {
       <div className="grid grid-cols-3 gap-4 ">
         <NewEntryCard />
         {entries.map((entry) => (
-          <EntryCard key={entry.id} entry={entry} />
+          <Link key={entry.id} href={`/journal/${entry.id}`}>
+            <EntryCard entry={entry} />
+          </Link>
         ))}
       </div>
     </div>
